@@ -2,28 +2,28 @@
 import api from "./client";
 import type { Mision } from "../types";
 
-//Obtener todas las misiones
+// OBTENER TODAS LAS MISIONES
 export async function obtenerMisiones(): Promise<Mision[]> {
-  const respuesta = await api.get<Mision[]>("/api/misiones");
+  const respuesta = await api.get<Mision[]>("/misiones");
   return respuesta.data;
 }
 
-//Crear misión
+// CREAR MISIÓN
 export async function crearMision(datos: Partial<Mision>): Promise<Mision> {
-  const respuesta = await api.post<Mision>("/api/misiones", datos);
+  const respuesta = await api.post<Mision>("/misiones", datos);
   return respuesta.data;
 }
 
-//Actualizar misión
+// ACTUALIZAR MISIÓN
 export async function actualizarMision(
   id: number,
   datos: Partial<Mision>
 ): Promise<Mision> {
-  const respuesta = await api.put<Mision>(`/api/misiones/${id}`, datos);
+  const respuesta = await api.put<Mision>(`/misiones/${id}`, datos);
   return respuesta.data;
 }
 
-//Eliminar misión
+// ELIMINAR MISIÓN
 export async function eliminarMision(id: number): Promise<void> {
-  await api.delete(`/api/misiones/${id}`);
+  await api.delete(`/misiones/${id}`);
 }

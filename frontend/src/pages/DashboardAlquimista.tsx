@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { obtenerMisiones } from "../api/misiones";
 
 interface Mision {
   ID: number;
@@ -10,53 +12,56 @@ interface Mision {
 }
 
 export default function AlquimistaDashboard() {
-  const { token, user } = useAuth();   // <-- ahora sí existe 'user'
+  // Tomamos el token del usuario logueado
+  const { token } = useAuth();
+
+  // Estados
   const [misiones, setMisiones] = useState<Mision[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // USE EFFECT para cargar misiones al entrar al dashboard
 
   useEffect(() => {
-    const cargarMisiones = async () => {
+    const cargar = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/misiones", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!res.ok) {
-          console.error("Error al cargar misiones:", await res.text());
-          setMisiones([]);
+        //Si NO hay token, no tiene caso llamar al backend
+        if (!token) {
+          setError("No hay token. Inicia sesión nuevamente.");
+          setCargando(false);
           return;
         }
 
-        const data: Mision[] = await res.json();
+        // Llamamos al backend 
+        const data = await obtenerMisiones();
 
-        // SOLO las misiones del alquimista logueado
-        const misionesFiltradas = data.filter(
-          (m) => m.AlquimistaID === user?.ID
-        );
+        //mostramos todas las misiones
 
-        setMisiones(misionesFiltradas);
-      } catch (error) {
-        console.error("Error en petición:", error);
+        setMisiones(data);
+
+      } catch (err: any) {
+        console.error("Error al cargar misiones:", err);
+        setError("No se pudieron cargar las misiones.");
       } finally {
         setCargando(false);
       }
     };
 
-    if (token && user) {
-      cargarMisiones();
-    }
-  }, [token, user]);
+    cargar();
+
+  }, [token]);
+
+  // RENDER
 
   if (cargando) return <p>Cargando misiones...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div>
-      <h2>Panel de Alquimista</h2>
+      <h2>Misiones</h2>
 
       {misiones.length === 0 ? (
-        <p>No hay misiones disponibles para este alquimista.</p>
+        <p>No hay misiones.</p>
       ) : (
         <ul>
           {misiones.map((m) => (
@@ -65,7 +70,9 @@ export default function AlquimistaDashboard() {
               <br />
               {m.Descripcion}
               <br />
-              <em>Estado: {m.Estado}</em>
+              Estado: {m.Estado}
+              <br />
+              <small>AlquimistaID: {m.AlquimistaID}</small>
             </li>
           ))}
         </ul>
